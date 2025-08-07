@@ -1,0 +1,3 @@
+{
+    "python.analysis.extraPaths": ["./codes", "./test/2encoding_test/mine"]
+}

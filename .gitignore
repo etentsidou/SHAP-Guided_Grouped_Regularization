@@ -1,0 +1,6 @@
+datasets/**/*.csv
+datasets/**/*.pkl
+datasets/**/*.xlsx
+datasets/**/*.epiotrt
+id_ed2*
+*.pub
