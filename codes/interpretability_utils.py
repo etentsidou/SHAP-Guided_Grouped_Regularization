@@ -5,7 +5,7 @@ from sklearn.cluster import KMeans
 
 def compute_shap_values(trainer, model):
   
-    # Computes SHAP values with training data, using KernelExplainer.
+    # Computes SHAP values using training data, with KernelExplainer.
 
     samples_size=50
     background_sample_size = 500
@@ -14,20 +14,16 @@ def compute_shap_values(trainer, model):
 
     np.random.seed(42)
 
-    # Merge all inputs
     concat_train_data = np.concatenate([
         trainer.train_features, trainer.train_feature_ont, trainer.train_feature_offt,
         trainer.train_on_epigenetic_code.reshape(len(trainer.train_on_epigenetic_code), -1),
         trainer.train_off_epigenetic_code.reshape(len(trainer.train_off_epigenetic_code), -1),], axis=1)
 
-    # Random subset for clustering
     train_data_indices = np.random.choice(len(concat_train_data), size=background_sample_size, replace=False)
     random_train_data = concat_train_data[train_data_indices]
 
-    # Clustered background for SHAP
     train_summary = shap.kmeans(random_train_data, num_clusters)
 
-    # Model prediction function for SHAP
     def shap_predictions(data):
         
         feat_dim = trainer.train_features.shape[1]
@@ -46,7 +42,6 @@ def compute_shap_values(trainer, model):
     
         return model.predict([input_1, input_2, input_3, input_4, input_5])
 
-    # Random subset to explain
     data_indices = np.random.choice(len(concat_train_data), size=samples_size, replace=False)
     random_data = concat_train_data[data_indices]
 
