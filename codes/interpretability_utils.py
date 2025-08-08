@@ -45,7 +45,7 @@ def compute_shap_values(trainer, model):
     data_indices = np.random.choice(len(concat_train_data), size=samples_size, replace=False)
     random_data = concat_train_data[data_indices]
 
-    # Compute SHAP values
+    # Compute SHAP values with KernelExplainer
     shap_explainer = shap.KernelExplainer(shap_predictions, train_summary)
     shap_values = shap_explainer.shap_values(random_data, nsamples=perturbations_per_sample)
 
