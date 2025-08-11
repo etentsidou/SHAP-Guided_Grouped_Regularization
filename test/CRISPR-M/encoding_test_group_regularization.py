@@ -73,7 +73,7 @@ class Trainer:
 
         # model = m81212_n13_with_epigenetic_group_regularization_no_shap_information() # L1_Uniform_Epigenetic 
 
-        model = m81212_n13_with_epigenetic_group_regularization() # L1_Grouped_Complete
+        model = m81212_n13_with_group_regularization() # L1_Grouped_Complete
 
 
         model.compile(optimizer=Adam(), loss=BinaryCrossentropy(), metrics=['acc', AUC(num_thresholds=4000, curve="ROC", name="auroc"), AUC(num_thresholds=4000, curve="PR", name="auprc")])
