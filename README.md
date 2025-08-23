@@ -18,7 +18,8 @@ The project builds on top of CRISPR-M, a multi-view deep learning model for sgRN
   - `shap_values.npy` — Precomputed SHAP values used for regularization strength calculations.  
   - `codes/interpretability_utils.py` — SHAP computation function for CRISPR-M.  
   - `test/test_model.py` — Definitions of all four model variants.  
-  - `test/CRISPR-M/encoding_test.py` — Runs CRISPR-M with the SHAP computation function.  
+  - `test/CRISPR-M/encoding_test_for_shap_values.py` — Runs CRISPR-M with the SHAP computation function.
+  - `test/CRISPR-M/encoding_test.py` — Runs CRISPR-M.
   - `test/CRISPR-M/encoding_test_group_regularization.py` — Runs the three L1-grouped model variants.
 
 ## How to run
