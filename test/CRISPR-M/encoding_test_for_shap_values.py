@@ -12,13 +12,14 @@ from tensorflow.keras.metrics import AUC
 from tensorflow.keras.losses import BinaryCrossentropy
 from sklearn.model_selection import train_test_split
 
-sys.path.append("/../../../codes")
-sys.path.append("/../../../test")
+sys.path.append("../../../codes")
+sys.path.append("../../../test")
 from encoding import encode_in_6_dimensions, encode_by_base_pair_vocabulary, encode_by_one_hot, encode_by_crispr_net_method, encode_by_crispr_net_method_with_isPAM, encode_by_crispr_ip_method, encode_by_crispr_ip_method_without_minus, encode_by_crispr_ip_method_without_isPAM
 from metrics_utils import compute_auroc_and_auprc
 from positional_encoding import PositionalEncoding
-from data_preprocessing_utils import load_K562_encoded_by_both_base_and_base_pair, load_HEK293t_encoded_by_both_base_and_base_pair
+from data_preprocessing_utils import load_HEK293t_encoded_by_both_base_and_base_pair
 from test_model import m81212_n13_with_epigenetic
+from interpretability_utils import compute_shap_values
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0, 1"
 
@@ -91,18 +92,16 @@ class Trainer:
         print("[INFO] ===== End train =====")
 
         model = load_model('tcrispr_model.h5', custom_objects={"PositionalEncoding": PositionalEncoding})
-
-        (kX, kXont, kXofft, ky, kon_epi, koff_epi) = load_K562_encoded_by_both_base_and_base_pair()
+    
+        compute_shap_values(model) # Compute SHAP values for trained model
 
         # test_loss, test_acc, auroc, auprc = model.evaluate(self.validation_features, self.validation_labels)
         # test_loss, test_acc, auroc, auprc = model.evaluate(x={"input_1": self.validation_features, "input_2": self.validation_feature_ont, "input_3": self.validation_feature_offt}, y=self.validation_labels)
-        # test_loss, test_acc, auroc, auprc = model.evaluate(x={"input_1": self.validation_features, "input_2": self.validation_feature_ont, "input_3": self.validation_feature_offt, "input_4": self.validation_on_epigenetic_code, "input_5": self.validation_off_epigenetic_code}, y=self.validation_labels)
-        test_loss, test_acc, auroc, auprc = model.evaluate(x={"input_1": kX, "input_2": kXont, "input_3": kXofft, "input_4": kon_epi, "input_5": koff_epi}, y=ky)
+        test_loss, test_acc, auroc, auprc = model.evaluate(x={"input_1": self.validation_features, "input_2": self.validation_feature_ont, "input_3": self.validation_feature_offt, "input_4": self.validation_on_epigenetic_code, "input_5": self.validation_off_epigenetic_code}, y=self.validation_labels)
         
         # accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels = compute_auroc_and_auprc(model=model, out_dim=1, test_features=self.validation_features, test_labels=self.validation_labels)
         # accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels, fpr, tpr, precision_point, recall_point = compute_auroc_and_auprc(model=model, out_dim=1, test_features=[self.validation_features, self.validation_feature_ont, self.validation_feature_offt], test_labels=self.validation_labels)
-        # accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels, fpr, tpr, precision_point, recall_point = compute_auroc_and_auprc(model=model, out_dim=1, test_features=[self.validation_features, self.validation_feature_ont, self.validation_feature_offt, self.validation_on_epigenetic_code, self.validation_off_epigenetic_code], test_labels=self.validation_labels)
-        accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels, fpr, tpr, precision_point, recall_point = compute_auroc_and_auprc(model=model, out_dim=1, test_features=[kX, kXont, kXofft, kon_epi, koff_epi], test_labels=ky)
+        accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels, fpr, tpr, precision_point, recall_point = compute_auroc_and_auprc(model=model, out_dim=1, test_features=[self.validation_features, self.validation_feature_ont, self.validation_feature_offt, self.validation_on_epigenetic_code, self.validation_off_epigenetic_code], test_labels=self.validation_labels)
         return test_loss, test_acc, auroc, auprc, accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels, fpr, tpr, precision_point, recall_point
 
 if __name__ == "__main__":
@@ -111,6 +110,7 @@ if __name__ == "__main__":
     trainer = Trainer()
     # trainer.train_features, trainer.train_feature_ont, trainer.train_feature_offt, trainer.train_labels, trainer.train_on_epigenetic_code, trainer.train_off_epigenetic_code = load_K562_encoded_by_both_base_and_base_pair()
     # trainer.validation_features, trainer.validation_feature_ont, trainer.validation_feature_offt, trainer.validation_labels, trainer.validation_on_epigenetic_code, trainer.validation_off_epigenetic_code = load_HEK293t_encoded_by_both_base_and_base_pair()
+    # Load HEK and split 80/20 (train/val)
     HEK_features, HEK_feature_ont, HEK_feature_offt, HEK_labels, HEK_on_epi, HEK_off_epi = load_HEK293t_encoded_by_both_base_and_base_pair()
 
     (trainer.train_features, trainer.validation_features,

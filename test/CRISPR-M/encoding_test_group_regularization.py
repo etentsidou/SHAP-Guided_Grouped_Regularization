@@ -10,9 +10,10 @@ from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.metrics import AUC
 from tensorflow.keras.losses import BinaryCrossentropy
+from sklearn.model_selection import train_test_split
 
-sys.path.append("/../../CRISPR_M_GroupedReg/codes")
-sys.path.append("/../../CRISPR_M_GroupedReg/test")
+sys.path.append("../../../codes")
+sys.path.append("../../../test")
 from encoding import encode_in_6_dimensions, encode_by_base_pair_vocabulary, encode_by_one_hot, encode_by_crispr_net_method, encode_by_crispr_net_method_with_isPAM, encode_by_crispr_ip_method, encode_by_crispr_ip_method_without_minus, encode_by_crispr_ip_method_without_isPAM
 from metrics_utils import compute_auroc_and_auprc
 from positional_encoding import PositionalEncoding
@@ -110,11 +111,18 @@ class Trainer:
         )
         print("[INFO] ===== End train =====")
 
+        # K562 for testing
+        (kX, kXont, kXofft, ky, k_on_ctcf, k_off_ctcf, k_on_dnase, k_off_dnase, k_on_h3k4me3, k_off_h3k4me3, k_on_rrbs, k_off_rrbs) = load_K562_encoded_by_both_base_and_base_pair_with_group_regularization()
+
         model = load_model('tcrispr_model.h5', custom_objects={"PositionalEncoding": PositionalEncoding})
 
-        test_loss, test_acc, auroc, auprc = model.evaluate(x={"input_1": self.validation_features, "input_2": self.validation_feature_ont, "input_3": self.validation_feature_offt, "on_target_ctcf": self.validation_on_ctcf, "off_target_ctcf": self.validation_off_ctcf, "on_target_dnase": self.validation_on_dnase, "off_target_dnase": self.validation_off_dnase, "on_target_h3k4me3": self.validation_on_h3k4me3, "off_target_h3k4me3": self.validation_off_h3k4me3, "on_target_rrbs": self.validation_on_rrbs, "off_target_rrbs": self.validation_off_rrbs }, y=self.validation_labels)
+        test_loss, test_acc, auroc, auprc = model.evaluate(x={"input_1": kX, "input_2": kXont, "input_3": kXofft,
+        "on_target_ctcf": k_on_ctcf, "off_target_ctcf": k_off_ctcf,
+        "on_target_dnase": k_on_dnase, "off_target_dnase": k_off_dnase,
+        "on_target_h3k4me3": k_on_h3k4me3, "off_target_h3k4me3": k_off_h3k4me3,
+        "on_target_rrbs": k_on_rrbs, "off_target_rrbs": k_off_rrbs }, y=ky)
 
-        accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels, fpr, tpr, precision_point, recall_point = compute_auroc_and_auprc(model=model, out_dim=1, test_features=[self.validation_features, self.validation_feature_ont, self.validation_feature_offt, self.validation_on_ctcf, self.validation_off_ctcf, self.validation_on_dnase, self.validation_off_dnase, self.validation_on_h3k4me3, self.validation_off_h3k4me3, self.validation_on_rrbs, self.validation_off_rrbs], test_labels=self.validation_labels)
+        accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels, fpr, tpr, precision_point, recall_point = compute_auroc_and_auprc(model=model, out_dim=1, test_features=[kX, kXont, kXofft, k_on_ctcf, k_off_ctcf, k_on_dnase, k_off_dnase, k_on_h3k4me3, k_off_h3k4me3, k_on_rrbs, k_off_rrbs], test_labels=ky)
         return test_loss, test_acc, auroc, auprc, accuracy, precision, recall, f1, fbeta, auroc_skl, auprc_skl, auroc_by_auc, auprc_by_auc, spearman_corr_by_pred_score, spearman_corr_by_pred_labels, fpr, tpr, precision_point, recall_point
 
 if __name__ == "__main__":
@@ -123,12 +131,35 @@ if __name__ == "__main__":
     trainer = Trainer()
     
     # Inputs for group regularization (Epigenetics and Complete)
-    trainer.train_features, trainer.train_feature_ont, trainer.train_feature_offt, trainer.train_labels, trainer.train_on_ctcf, trainer.train_off_ctcf, trainer.train_on_dnase, trainer.train_off_dnase, trainer.train_on_h3k4me3, trainer.train_off_h3k4me3, trainer.train_on_rrbs, trainer.train_off_rrbs  = load_K562_encoded_by_both_base_and_base_pair_with_group_regularization()
-    trainer.validation_features, trainer.validation_feature_ont, trainer.validation_feature_offt, trainer.validation_labels, trainer.validation_on_ctcf, trainer.validation_off_ctcf, trainer.validation_on_dnase, trainer.validation_off_dnase, trainer.validation_on_h3k4me3, trainer.validation_off_h3k4me3, trainer.validation_on_rrbs, trainer.validation_off_rrbs  = load_HEK293t_encoded_by_both_base_and_base_pair_with_group_regularization()
+    # trainer.train_features, trainer.train_feature_ont, trainer.train_feature_offt, trainer.train_labels, trainer.train_on_ctcf, trainer.train_off_ctcf, trainer.train_on_dnase, trainer.train_off_dnase, trainer.train_on_h3k4me3, trainer.train_off_h3k4me3, trainer.train_on_rrbs, trainer.train_off_rrbs  = load_K562_encoded_by_both_base_and_base_pair_with_group_regularization()
+    # trainer.validation_features, trainer.validation_feature_ont, trainer.validation_feature_offt, trainer.validation_labels, trainer.validation_on_ctcf, trainer.validation_off_ctcf, trainer.validation_on_dnase, trainer.validation_off_dnase, trainer.validation_on_h3k4me3, trainer.validation_off_h3k4me3, trainer.validation_on_rrbs, trainer.validation_off_rrbs  = load_HEK293t_encoded_by_both_base_and_base_pair_with_group_regularization()
+    
+    # Load HEK and split 80/20 (train/val)
+    (HEK_X, HEK_Xont, HEK_Xofft, HEK_y, HEK_on_ctcf, HEK_off_ctcf, HEK_on_dnase, HEK_off_dnase, HEK_on_h3k4me3, HEK_off_h3k4me3, HEK_on_rrbs, HEK_off_rrbs) = load_HEK293t_encoded_by_both_base_and_base_pair_with_group_regularization()
+
+    (trainer.train_features, trainer.validation_features,
+    trainer.train_feature_ont, trainer.validation_feature_ont,
+    trainer.train_feature_offt, trainer.validation_feature_offt,
+    trainer.train_labels, trainer.validation_labels,
+    trainer.train_on_ctcf, trainer.validation_on_ctcf,
+    trainer.train_off_ctcf, trainer.validation_off_ctcf,
+    trainer.train_on_dnase, trainer.validation_on_dnase,
+    trainer.train_off_dnase, trainer.validation_off_dnase,
+    trainer.train_on_h3k4me3, trainer.validation_on_h3k4me3,
+    trainer.train_off_h3k4me3, trainer.validation_off_h3k4me3,
+    trainer.train_on_rrbs, trainer.validation_on_rrbs,
+    trainer.train_off_rrbs, trainer.validation_off_rrbs) = train_test_split(
+        HEK_X, HEK_Xont, HEK_Xofft, HEK_y,
+        HEK_on_ctcf, HEK_off_ctcf,
+        HEK_on_dnase, HEK_off_dnase,
+        HEK_on_h3k4me3, HEK_off_h3k4me3,
+        HEK_on_rrbs, HEK_off_rrbs,
+        test_size=0.2, stratify=HEK_y, random_state=42
+    )
 
     # Exchange training and validation sets
     # Inputs for group regularization (Epigenetics and Complete)
-    trainer.train_features, trainer.train_feature_ont, trainer.train_feature_offt, trainer.train_labels, trainer.train_on_ctcf, trainer.train_off_ctcf, trainer.train_on_dnase, trainer.train_off_dnase, trainer.train_on_h3k4me3, trainer.train_off_h3k4me3, trainer.train_on_rrbs, trainer.train_off_rrbs, trainer.validation_features, trainer.validation_feature_ont, trainer.validation_feature_offt, trainer.validation_labels, trainer.validation_on_ctcf, trainer.validation_off_ctcf, trainer.validation_on_dnase, trainer.validation_off_dnase, trainer.validation_on_h3k4me3, trainer.validation_off_h3k4me3, trainer.validation_on_rrbs, trainer.validation_off_rrbs  = trainer.validation_features, trainer.validation_feature_ont, trainer.validation_feature_offt, trainer.validation_labels, trainer.validation_on_ctcf, trainer.validation_off_ctcf, trainer.validation_on_dnase, trainer.validation_off_dnase,  trainer.validation_on_h3k4me3, trainer.validation_off_h3k4me3, trainer.validation_on_rrbs, trainer.validation_off_rrbs, trainer.train_features, trainer.train_feature_ont, trainer.train_feature_offt, trainer.train_labels, trainer.train_on_ctcf, trainer.train_off_ctcf, trainer.train_on_dnase, trainer.train_off_dnase, trainer.train_on_h3k4me3, trainer.train_off_h3k4me3, trainer.train_on_rrbs, trainer.train_off_rrbs
+    # trainer.train_features, trainer.train_feature_ont, trainer.train_feature_offt, trainer.train_labels, trainer.train_on_ctcf, trainer.train_off_ctcf, trainer.train_on_dnase, trainer.train_off_dnase, trainer.train_on_h3k4me3, trainer.train_off_h3k4me3, trainer.train_on_rrbs, trainer.train_off_rrbs, trainer.validation_features, trainer.validation_feature_ont, trainer.validation_feature_offt, trainer.validation_labels, trainer.validation_on_ctcf, trainer.validation_off_ctcf, trainer.validation_on_dnase, trainer.validation_off_dnase, trainer.validation_on_h3k4me3, trainer.validation_off_h3k4me3, trainer.validation_on_rrbs, trainer.validation_off_rrbs  = trainer.validation_features, trainer.validation_feature_ont, trainer.validation_feature_offt, trainer.validation_labels, trainer.validation_on_ctcf, trainer.validation_off_ctcf, trainer.validation_on_dnase, trainer.validation_off_dnase,  trainer.validation_on_h3k4me3, trainer.validation_off_h3k4me3, trainer.validation_on_rrbs, trainer.validation_off_rrbs, trainer.train_features, trainer.train_feature_ont, trainer.train_feature_offt, trainer.train_labels, trainer.train_on_ctcf, trainer.train_off_ctcf, trainer.train_on_dnase, trainer.train_off_dnase, trainer.train_on_h3k4me3, trainer.train_off_h3k4me3, trainer.train_on_rrbs, trainer.train_off_rrbs
 
     test_loss_sum, test_acc_sum, auroc_sum, auprc_sum, accuracy_sum, precision_sum, recall_sum, f1_sum, fbeta_sum, auroc_skl_sum, auprc_skl_sum, auroc_by_auc_sum, auprc_by_auc_sum, spearman_corr_by_pred_score_sum, spearman_corr_by_pred_labels_sum = 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     fpr_list, tpr_list, precision_point_list, recall_point_list = list(), list(), list(), list()

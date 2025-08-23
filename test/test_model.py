@@ -93,11 +93,15 @@ def m81212_n13_with_epigenetic(VOCABULARY_SIZE=30, MAX_STEPS=24, EMBED_SIZE=7):
     return model
 
 def m81212_n13_with_epigenetic_group_regularization(VOCABULARY_SIZE=30, MAX_STEPS=24, EMBED_SIZE=7):
-    # Penalties per factor
-    ctfc=0.07999968
-    dnase=0.02666663
-    h3k4me3=0.02898968
-    rrbs=0.03045185
+    # Penalties per epigenetic data group
+    ctcf_on=1
+    dnase_on=1
+    h3k4me3_on=1
+    rrbs_on=1
+    ctcf_off=0.40867209
+    dnase_off=0
+    h3k4me3_off=0.35599691
+    rrbs_off=0.18464293
 
     embedding = Embedding(input_dim=VOCABULARY_SIZE, output_dim=EMBED_SIZE)
     position_encoding = PositionalEncoding(max_steps=MAX_STEPS, max_dims=EMBED_SIZE)
@@ -123,32 +127,32 @@ def m81212_n13_with_epigenetic_group_regularization(VOCABULARY_SIZE=30, MAX_STEP
     # inputs_5 = Input(shape=(24, 3, ), name="input_5") 
 
     # Apply L1 Regularization to CTCF
-    ctcf_on_dense = Dense(64, activation='relu', activity_regularizer=L1(ctfc))(on_target_ctcf)
-    ctcf_off_dense = Dense(64, activation='relu', activity_regularizer=L1(ctfc))(off_target_ctcf)
+    ctcf_on_dense = Dense(64, activation='relu', activity_regularizer=L1(ctcf_on))(on_target_ctcf)
+    ctcf_off_dense = Dense(64, activation='relu', activity_regularizer=L1(ctcf_off))(off_target_ctcf)
     ctcf_on_bn = BatchNormalization()(ctcf_on_dense)
     ctcf_off_bn = BatchNormalization()(ctcf_off_dense)
     ctcf_on_dropout = Dropout(0.2)(ctcf_on_bn) 
     ctcf_off_dropout = Dropout(0.2)(ctcf_off_bn) 
 
     # Apply L1 Regularization to DNase
-    dnase_on_dense = Dense(64, activation='relu', activity_regularizer=L1(dnase))(on_target_dnase)
-    dnase_off_dense = Dense(64, activation='relu', activity_regularizer=L1(dnase))(off_target_dnase)
+    dnase_on_dense = Dense(64, activation='relu', activity_regularizer=L1(dnase_on))(on_target_dnase)
+    dnase_off_dense = Dense(64, activation='relu', activity_regularizer=L1(dnase_off))(off_target_dnase)
     dnase_on_bn = BatchNormalization()(dnase_on_dense)
     dnase_off_bn = BatchNormalization()(dnase_off_dense)
     dnase_on_dropout = Dropout(0.2)(dnase_on_bn) 
     dnase_off_dropout = Dropout(0.2)(dnase_off_bn) 
 
     # Apply L1 Regularization to H3K4me3
-    h3k4me3_on_dense = Dense(64, activation='relu', activity_regularizer=L1(h3k4me3))(on_target_h3k4me3)
-    h3k4me3_off_dense = Dense(64, activation='relu', activity_regularizer=L1(h3k4me3))(off_target_h3k4me3)
+    h3k4me3_on_dense = Dense(64, activation='relu', activity_regularizer=L1(h3k4me3_on))(on_target_h3k4me3)
+    h3k4me3_off_dense = Dense(64, activation='relu', activity_regularizer=L1(h3k4me3_off))(off_target_h3k4me3)
     h3k4me3_on_bn = BatchNormalization()(h3k4me3_on_dense)
     h3k4me3_off_bn = BatchNormalization()(h3k4me3_off_dense)
     h3k4me3_on_dropout = Dropout(0.2)(h3k4me3_on_bn) 
     h3k4me3_off_dropout = Dropout(0.2)(h3k4me3_off_bn) 
 
     # Apply L1 Regularization to RRBS
-    rrbs_on_dense = Dense(64, activation='relu', activity_regularizer=L1(rrbs))(on_target_rrbs)
-    rrbs_off_dense = Dense(64, activation='relu', activity_regularizer=L1(rrbs))(off_target_rrbs)
+    rrbs_on_dense = Dense(64, activation='relu', activity_regularizer=L1(rrbs_on))(on_target_rrbs)
+    rrbs_off_dense = Dense(64, activation='relu', activity_regularizer=L1(rrbs_off))(off_target_rrbs)
     rrbs_on_bn = BatchNormalization()(rrbs_on_dense)
     rrbs_off_bn = BatchNormalization()(rrbs_off_dense)
     rrbs_on_dropout = Dropout(0.2)(rrbs_on_bn) 
@@ -346,16 +350,16 @@ def m81212_n13_with_epigenetic_group_regularization_no_shap_information(VOCABULA
 def m81212_n13_with_group_regularization(VOCABULARY_SIZE=30, MAX_STEPS=24, EMBED_SIZE=7):
     # Penalties for Each Data Group
     features=0.001
-    feature_ont=0.00829255
-    feature_offt=0.00803434
-    on_ctcf=0.01
-    off_ctcf=0.00921985
-    on_dnase=0.00977774
-    off_dnase=0.00968546
-    on_h3k4me3=0.00907265
-    off_h3k4me3=0.00867075
-    on_rrbs=0.00850309
-    off_rrbs=0.00844418
+    feature_ont=0.93197436
+    feature_offt=0.91995422
+    on_ctcf=1
+    on_dnase=1
+    on_h3k4me3=1
+    on_rrbs=1
+    off_ctcf=0.98392214
+    off_dnase=0.97281058
+    off_h3k4me3=0.98248993
+    off_rrbs=0.97783092
 
     embedding = Embedding(input_dim=VOCABULARY_SIZE, output_dim=EMBED_SIZE)
     position_encoding = PositionalEncoding(max_steps=MAX_STEPS, max_dims=EMBED_SIZE)
