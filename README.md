@@ -15,12 +15,12 @@ The project builds on top of CRISPR-M, a multi-view deep learning model for sgRN
 
 ### Contents
   - `notebooks/regularization_strengths_calculation/` — Notebooks for computing SHAP-guided group-wise L1 regularization strengths.  
-  - `shap_values.npy` — Precomputed SHAP values used for regularization strength calculations.  
+  - `shap_values.npy` — Precomputed SHAP values used to calculate regularization strengths on the K562 dataset.  
   - `codes/interpretability_utils.py` — SHAP computation function for CRISPR-M.  
   - `test/test_model.py` — Definitions of all four model variants.  
-  - `test/CRISPR-M/encoding_test_for_shap_values.py` — Runs CRISPR-M with the SHAP computation function.
-  - `test/CRISPR-M/encoding_test.py` — Runs CRISPR-M.
-  - `test/CRISPR-M/encoding_test_group_regularization.py` — Runs the three L1-grouped model variants.
+  - `test/CRISPR-M/encoding_test_for_shap_values.py` — Runs CRISPR-M with the SHAP computation function, trained and evaluated on the HEK293T dataset.
+  - `test/CRISPR-M/encoding_test.py` — Runs CRISPR-M, trained on HEK293T and evaluated on K562.
+  - `test/CRISPR-M/encoding_test_group_regularization.py` — Runs the three L1-grouped model variants, trained on HEK293T and evaluated on K562.
 
 ## How to run
 1. **Run CRISPR-M model to calculate SHAP values**  
@@ -52,7 +52,7 @@ The project builds on top of CRISPR-M, a multi-view deep learning model for sgRN
     python test/CRISPR-M/encoding_test_group_regularization.py
 
 ## Data
-This repository includes the HEK293T and K562 datasets with epigenetic features for sgRNA off-target prediction, used also in CRISPR-M and DeepCRISPR experiments.
+This repository includes the HEK293T and K562 datasets with epigenetic features for sgRNA off-target prediction, as used in CRISPR-M and DeepCRISPR experiments.
 
 ## Acknowledgement
 This work builds upon the CRISPR-M model originally published by Sun J, Guo J, Liu J.  
